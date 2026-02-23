@@ -1,0 +1,30 @@
+.fc-prev-button.fc-button.fc-state-default.fc-corner-left {
+    background-color: white;
+    color: black;
+}
+
+.fc-next-button.fc-button.fc-state-default.fc-corner-right {
+    background-color: white;
+    color: black;
+}
+
+
+.fc-today-button.fc-button.fc-state-default.fc-corner-left.fc-corner-right.fc-state-disabled {
+    background-color: white;
+    color: black;
+}
+
+.fc-month-button.fc-button.fc-state-default.fc-corner-left.fc-state-active {
+    background-color: white;
+    color: black;
+}
+
+.fc-agendaWeek-button.fc-button.fc-state-default {
+    background-color: white;
+    color: black;
+}
+
+.fc-agendaDay-button.fc-button.fc-state-default.fc-corner-right {
+    background-color: white;
+    color: black;
+}
