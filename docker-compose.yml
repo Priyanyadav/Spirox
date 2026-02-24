@@ -1,0 +1,34 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: spirox-app
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+    environment:
+      - DB_CONNECTION=pgsql
+      - DB_HOST=aws-1-ap-southeast-2.pooler.supabase.com
+      - DB_PORT=5432
+      - DB_DATABASE=postgres
+      - DB_USERNAME=postgres.lztldvcxhwlayuyqmixn
+      - DB_PASSWORD=iNGrRnVO4VbYiga6
+    networks:
+      - spirox-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: spirox-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./:/var/www
+    networks:
+      - spirox-network
+
+networks:
+  spirox-network:
+    driver: bridge
