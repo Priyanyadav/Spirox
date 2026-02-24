@@ -1,34 +1,41 @@
-services:
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: spirox-app
-    restart: unless-stopped
-    working_dir: /var/www
-    volumes:
-      - ./:/var/www
-    environment:
-      - DB_CONNECTION=pgsql
-      - DB_HOST=aws-1-ap-southeast-2.pooler.supabase.com
-      - DB_PORT=5432
-      - DB_DATABASE=postgres
-      - DB_USERNAME=postgres.lztldvcxhwlayuyqmixn
-      - DB_PASSWORD=iNGrRnVO4VbYiga6
-    networks:
-      - spirox-network
+# Stage 1 - Build Frontend (Vite)
+FROM node:18 AS frontend
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
 
-  nginx:
-    image: nginx:alpine
-    container_name: spirox-nginx
-    restart: unless-stopped
-    ports:
-      - "80:80"
-    volumes:
-      - ./:/var/www
-    networks:
-      - spirox-network
+# Stage 2 - Backend (Laravel + PHP + Composer)
+FROM php:8.2-fpm AS backend
 
-networks:
-  spirox-network:
-    driver: bridge
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git curl unzip libpq-dev libonig-dev libzip-dev zip \
+    # Supabase (PostgreSQL) માટે pdo_pgsql અને pgsql ઉમેર્યું છે
+    && docker-php-ext-install pdo pdo_mysql pdo_pgsql pgsql mbstring zip
+
+# Install Composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+WORKDIR /var/www
+
+# Copy app files
+COPY . .
+
+# Copy built frontend from Stage 1
+# ખાતરી કરો કે Laravel 11 માં તમારો Vite build પાથ સાચો છે
+COPY --from=frontend /app/public ./public 
+
+# Install PHP dependencies
+RUN composer install --no-dev --optimize-autoloader
+
+# પરમિશન સેટ કરવી જરૂરી છે જેથી Hostinger VPS પર એરર ન આવે
+RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
+
+# Laravel setup
+RUN php artisan config:clear && \
+    php artisan route:clear && \
+    php artisan view:clear
+
+CMD ["php-fpm"]
